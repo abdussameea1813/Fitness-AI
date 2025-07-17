@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 
 const Navbar = () => {
-    const { isSignedIn, user } = useUser();
+    const { isSignedIn } = useUser();
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-md border-b border-border py-3 px-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">

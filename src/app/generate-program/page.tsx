@@ -162,7 +162,7 @@ const GenerateProgramPage = () => {
             <CardTitle className="text-3xl font-bold text-white tracking-wide">
               {`Question ${currentSlideIndex + 1} of ${totalSlides}`}
             </CardTitle>
-            <p className="text-gray-400 mt-2">Let's get to know you better!</p>
+            <p className="text-gray-400 mt-2">Let&apos;s get to know you better!</p>
           </CardHeader>
 
           <CardContent className="min-h-[350px] flex items-center justify-center">
@@ -187,7 +187,7 @@ const GenerateProgramPage = () => {
               {/* Slide 1: Fitness Goal */}
               <SwiperSlide>
                 <div className="flex flex-col items-center justify-center p-4">
-                  <Label htmlFor="fitnessGoal" className="text-2xl font-semibold mb-6 text-white">What's your primary fitness goal?</Label>
+                  <Label htmlFor="fitnessGoal" className="text-2xl font-semibold mb-6 text-white">What&apos;s your primary fitness goal?</Label>
                   <Input
                     id="fitnessGoal"
                     type="text"
@@ -205,7 +205,7 @@ const GenerateProgramPage = () => {
               {/* Slide 2: Fitness Level */}
               <SwiperSlide>
                 <div className="flex flex-col items-center justify-center p-4">
-                  <Label htmlFor="fitnessLevel" className="text-2xl font-semibold mb-6 text-white">What's your current fitness level?</Label>
+                  <Label htmlFor="fitnessLevel" className="text-2xl font-semibold mb-6 text-white">What&apos;s your current fitness level?</Label>
                   <Select value={fitnessLevel} onValueChange={setFitnessLevel} required>
                     <SelectTrigger id="fitnessLevel" className="max-w-md bg-gray-800 border-gray-700 text-white">
                       <SelectValue placeholder="Select level" />
@@ -258,7 +258,7 @@ const GenerateProgramPage = () => {
               {/* Slide 5: Height */}
               <SwiperSlide>
                 <div className="flex flex-col items-center justify-center p-4">
-                  <Label htmlFor="height" className="text-2xl font-semibold mb-6 text-white">What's your height (in cm)?</Label>
+                  <Label htmlFor="height" className="text-2xl font-semibold mb-6 text-white">What&apos;s your height (in cm)?</Label>
                   <Input
                     id="height"
                     type="number"
@@ -275,7 +275,7 @@ const GenerateProgramPage = () => {
               {/* Slide 6: Weight */}
               <SwiperSlide>
                 <div className="flex flex-col items-center justify-center p-4">
-                  <Label htmlFor="weight" className="text-2xl font-semibold mb-6 text-white">What's your weight (in kg)?</Label>
+                  <Label htmlFor="weight" className="text-2xl font-semibold mb-6 text-white">What&apos;s your weight (in kg)?</Label>
                   <Input
                     id="weight"
                     type="number"
