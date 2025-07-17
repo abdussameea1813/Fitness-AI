@@ -1,0 +1,221 @@
+{
+  "name": "Fitness AI (Uploaded via JSON)",
+  "nodes": [
+    {
+      "name": "introduction",
+      "type": "conversation",
+      "isStart": true,
+      "metadata": {
+        "position": {
+          "x": -1.5352058410644531,
+          "y": 19.533649444580078
+        }
+      },
+      "prompt": "Are you ready to begin?",
+      "messagePlan": {
+        "firstMessage": "Hey {{ full_name }},\nHope you're doing well!\nToday, I’m here to help you build a personalized diet and weekly workout plan that fits your lifestyle.\nTo make it truly effective, I’ll need to ask you a few quick questions — nothing complicated.\nReady to get started?"
+      }
+    },
+    {
+      "name": "collect_user_info",
+      "type": "conversation",
+      "metadata": {
+        "position": {
+          "x": -1.5352058410644531,
+          "y": 768.9847564697266
+        }
+      },
+      "prompt": "First up — how old are you? What's your current weight? And your height? Any injuries or health conditions I should be aware of? What’s your primary fitness goal — weight loss, muscle gain, or something else? How many days per week can you commit to working out? How would you rate your current fitness level — beginner, intermediate, or advanced? Do you have any dietary restrictions or allergies? Just to help with calorie needs — what’s your gender? What kind of equipment do you have access to — bodyweight only, dumbbells, or full gym? What type of diet do you follow — vegetarian, halal, keto, or anything else?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "type": "string",
+            "title": "age",
+            "description": "Client's age for appropriate exercise intensity"
+          },
+          {
+            "type": "string",
+            "title": "weight",
+            "description": "Client's weight for BMI calculation"
+          },
+          {
+            "type": "string",
+            "title": "height",
+            "description": "Client's height for BMI calculation"
+          },
+          {
+            "type": "string",
+            "title": "injuries",
+            "description": "Any injuries or health condition to consider."
+          },
+          {
+            "type": "string",
+            "title": "fitness_goal",
+            "description": "Primary fitness goal"
+          },
+          {
+            "type": "string",
+            "title": "workout_days",
+            "description": "Number of days in a week available to workout"
+          },
+          {
+            "type": "string",
+            "title": "fitness_level",
+            "description": "Current fitness level"
+          },
+          {
+            "type": "string",
+            "title": "dietery_restrictions",
+            "description": "Any food allergies or dietary preferences"
+          },
+          {
+            "type": "string",
+            "title": "gender",
+            "description": "For adjusting caloric needs or focus"
+          },
+          {
+            "type": "string",
+            "title": "equipment_available",
+            "description": "Workout equipment availability"
+          },
+          {
+            "enum": [],
+            "type": "string",
+            "title": "diet_type",
+            "description": "Diet preference type"
+          }
+        ]
+      }
+    },
+    {
+      "name": "generate_plan",
+      "type": "tool",
+      "metadata": {
+        "position": {
+          "x": -1.5352058410644531,
+          "y": 8543.842113782743
+        }
+      },
+      "tool": {
+        "url": "https://acrobatic-elephant-917.convex.cloud/vapi/generate-program",
+        "body": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "age": {
+              "type": "string",
+              "value": "{{age}}",
+              "description": ""
+            },
+            "gender": {
+              "type": "string",
+              "value": "{{gender}}",
+              "description": ""
+            },
+            "height": {
+              "type": "string",
+              "value": "{{height}}",
+              "description": ""
+            },
+            "weight": {
+              "type": "string",
+              "value": "{{weight}}",
+              "description": ""
+            },
+            "user_id": {
+              "type": "string",
+              "value": "",
+              "description": ""
+            },
+            "injuries": {
+              "type": "string",
+              "value": "{{injuries}}",
+              "description": ""
+            },
+            "diet_type": {
+              "type": "string",
+              "value": "{{diet_type}}",
+              "description": ""
+            },
+            "fitness_goal": {
+              "type": "string",
+              "value": "{{fitness_goal}}",
+              "description": ""
+            },
+            "workout_days": {
+              "type": "string",
+              "value": "{{workout_days}}",
+              "description": ""
+            },
+            "fitness_level": {
+              "type": "string",
+              "value": "{{fitness_level}}",
+              "description": ""
+            },
+            "equipment_available": {
+              "type": "string",
+              "value": "{{equipment_available}}",
+              "description": ""
+            },
+            "dietery_restrictions": {
+              "type": "string",
+              "value": "{{dietery_restrictions}}",
+              "description": ""
+            }
+          }
+        },
+        "type": "apiRequest",
+        "method": "POST",
+        "function": {
+          "name": "generate_program",
+          "parameters": {
+            "type": "object",
+            "required": [],
+            "properties": {}
+          }
+        },
+        "variableExtractionPlan": {
+          "schema": {
+            "type": "object",
+            "required": [],
+            "properties": {}
+          },
+          "aliases": []
+        }
+      }
+    },
+    {
+      "name": "wrap_up",
+      "type": "conversation",
+      "metadata": {
+        "position": {
+          "x": -1.5352058410644531,
+          "y": 9135.40733718872
+        }
+      },
+      "prompt": "You're all set! Just refresh the page to access your personalized plan.",
+      "messagePlan": {
+        "firstMessage": "Thanks, {{ full_name }}! Your personalized workout and diet plan is ready. Just refresh the page to access your dashboard. Let's crush those goals together 💪"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "introduction",
+      "to": "collect_user_info",
+      "condition": {
+        "type": "ai",
+        "prompt": "if user says yes or is ready to begin"
+      }
+    },
+    {
+      "from": "collect_user_info",
+      "to": "generate_plan"
+    },
+    {
+      "from": "generate_plan",
+      "to": "wrap_up"
+    }
+  ],
+  "globalPrompt": ""
+}

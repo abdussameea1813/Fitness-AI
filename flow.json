@@ -1,0 +1,208 @@
+{
+  "name": "Fitness AI",
+  "nodes": [
+    {
+      "name": "introduction",
+      "type": "conversation",
+      "isStart": true,
+      "prompt": "Are you ready to begin?",
+      "messagePlan": {
+        "firstMessage": "Hey {{ full_name }},\nHope you're doing well!\nToday, I’m here to help you build a personalized diet and weekly workout plan that fits your lifestyle.\nTo make it truly effective, I’ll need to ask you a few quick questions — nothing complicated.\nReady to get started?"
+      }
+    },
+    {
+      "name": "get_age",
+      "type": "conversation",
+      "prompt": "First up — how old are you?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "age",
+            "type": "string",
+            "description": "Client's age for appropriate exercise intensity"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_weight",
+      "type": "conversation",
+      "prompt": "Great. What's your current weight?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "weight",
+            "type": "string",
+            "description": "Client's weight for BMI calculation"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_height",
+      "type": "conversation",
+      "prompt": "Awesome. And your height?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "height",
+            "type": "string",
+            "description": "Client's height for BMI calculation"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_injuries",
+      "type": "conversation",
+      "prompt": "Any injuries or health conditions I should be aware of?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "injuries",
+            "type": "string",
+            "description": "Any injuries or health condition to consider."
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_fitness_goal",
+      "type": "conversation",
+      "prompt": "What’s your primary fitness goal — weight loss, muscle gain, or something else?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "fitness_goal",
+            "type": "string",
+            "description": "Primary fitness goal"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_workout_days",
+      "type": "conversation",
+      "prompt": "How many days per week can you commit to working out?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "workout_days",
+            "type": "string",
+            "description": "Number of days in a week available to workout"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_fitness_level",
+      "type": "conversation",
+      "prompt": "How would you rate your current fitness level — beginner, intermediate, or advanced?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "fitness_level",
+            "type": "string",
+            "description": "Current fitness level"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_dietery_restrictions",
+      "type": "conversation",
+      "prompt": "Do you have any dietary restrictions or allergies?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "dietery_restrictions",
+            "type": "string",
+            "description": "Any food allergies or dietary preferences"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_gender",
+      "type": "conversation",
+      "prompt": "Just to help with calorie needs — what’s your gender?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "gender",
+            "type": "string",
+            "description": "For adjusting caloric needs or focus"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_equipment",
+      "type": "conversation",
+      "prompt": "What kind of equipment do you have access to — bodyweight only, dumbbells, or full gym?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "equipment_available",
+            "type": "string",
+            "description": "Workout equipment availability"
+          }
+        ]
+      }
+    },
+    {
+      "name": "get_diet_type",
+      "type": "conversation",
+      "prompt": "What type of diet do you follow — vegetarian, halal, keto, or anything else?",
+      "variableExtractionPlan": {
+        "output": [
+          {
+            "title": "diet_type",
+            "type": "string",
+            "description": "Diet preference type"
+          }
+        ]
+      }
+    },
+    {
+      "name": "generate_plan",
+      "type": "tool",
+      "tool": {
+        "type": "apiRequest",
+        "function": {
+          "name": "generate_program",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          }
+        },
+        "url": "https://yourapi.com/vapi/generate-program",
+        "method": "POST"
+      }
+    },
+    {
+      "name": "wrap_up",
+      "type": "conversation",
+      "prompt": "You're all set! Just refresh the page to access your personalized plan.",
+      "messagePlan": {
+        "firstMessage": "Thanks, {{ full_name }}! Your personalized workout and diet plan is ready. Just refresh the page to access your dashboard. Let's crush those goals together 💪"
+      }
+    }
+  ],
+  "edges": [
+    { "from": "introduction", "to": "get_age", "condition": { "type": "ai", "prompt": "if user says yes or is ready to begin" } },
+    { "from": "get_age", "to": "get_weight" },
+    { "from": "get_weight", "to": "get_height" },
+    { "from": "get_height", "to": "get_injuries" },
+    { "from": "get_injuries", "to": "get_fitness_goal" },
+    { "from": "get_fitness_goal", "to": "get_workout_days" },
+    { "from": "get_workout_days", "to": "get_fitness_level" },
+    { "from": "get_fitness_level", "to": "get_dietery_restrictions" },
+    { "from": "get_dietery_restrictions", "to": "get_gender" },
+    { "from": "get_gender", "to": "get_equipment" },
+    { "from": "get_equipment", "to": "get_diet_type" },
+    { "from": "get_diet_type", "to": "generate_plan" },
+    { "from": "generate_plan", "to": "wrap_up" }
+  ]
+}
