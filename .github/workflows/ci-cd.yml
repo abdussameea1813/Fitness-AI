@@ -1,6 +1,6 @@
 # .github/workflows/ci-cd.yml
 
-name: CI/CD Pipeline
+name: CI/CD Pipeline - Fullstack Next.js & Convex
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
     name: Build & Code Quality Checks
     runs-on: ubuntu-latest # Uses a fresh Ubuntu virtual machine for each run
 
-    env: # Moved NPM_CACHE_KEY here, into the job's scope
+    env: # Environment variables specific to this job
       NPM_CACHE_KEY: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Cache key for npm dependencies
 
     steps:
@@ -55,15 +55,17 @@ jobs:
       - name: Build Frontend (Next.js)
         run: npm run build
         env:
-          # Required Next.js build-time environment variables
+          # Required Next.js build-time environment variables.
+          # These should also be configured in Vercel project settings for deployments.
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
           NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
           NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /
           NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /
           CONVEX_DEPLOYMENT_URL: ${{ secrets.CONVEX_PROJECT_URL }}
-          # GEMINI_API_KEY is usually only needed at runtime for the AI action,
-          # not typically for a pure Next.js build. Uncomment if your build process requires it.
+          # GEMINI_API_KEY is typically used at runtime in Convex functions or Next.js API routes,
+          # not usually needed for a simple `npm run build` unless your build process specifically invokes it.
+          # If your build fails without it, uncomment the line below.
           # GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Convex Lint & Type Check
@@ -87,7 +89,7 @@ jobs:
     # This conditional ensures deployment only happens for pushes to the main branch, not PRs
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-    env: # Moved NPM_CACHE_KEY here as well, into the deploy job's scope
+    env: # Environment variables specific to this job
       NPM_CACHE_KEY: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Cache key for npm dependencies
 
     steps:
@@ -126,7 +128,8 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           # Pass all environment variables needed by your Next.js app at build and runtime.
-          # These should also be configured as secrets in Vercel itself for best practice.
+          # IMPORTANT: These should also be configured as secrets in your Vercel project dashboard
+          # to ensure they are available to your deployed application's serverless functions.
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
@@ -134,7 +137,7 @@ jobs:
           NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /
           NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /
           CONVEX_DEPLOYMENT_URL: ${{ secrets.CONVEX_PROJECT_URL }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Needed for runtime API calls from Next.js backend
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Needed for runtime API calls (e.g., in Next.js API routes)
 
       - name: Deploy to Vercel
         # Deploys the pre-built artifacts to Vercel's production environment.
