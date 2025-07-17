@@ -1,0 +1,139 @@
+# .github/workflows/ci-cd.yml
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Run CI and CD when changes are pushed to the 'main' branch
+    paths-ignore:
+      - '**.md' # Ignore changes to Markdown files (e.g., README) for efficiency
+
+  pull_request:
+    branches:
+      - main # Run CI checks when a Pull Request is opened or updated targeting 'main'
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - '**.md'
+
+# Define a set of reusable environment variables for the workflow
+env:
+  NODE_VERSION: '20' # Specify your preferred Node.js version
+  NPM_CACHE_KEY: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Cache key for npm dependencies
+
+jobs:
+  # --------------------------------------------------------------------------------------
+  # CI Job: Build, Lint, Type Check
+  # This job runs for every push to 'main' and every Pull Request to 'main'.
+  # It ensures code quality and buildability before deployment.
+  # --------------------------------------------------------------------------------------
+  build-lint-typecheck:
+    name: Build & Code Quality Checks
+    runs-on: ubuntu-latest # Uses a fresh Ubuntu virtual machine for each run
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4 # Clones your repository into the runner environment
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4 # Configures Node.js for the environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm' # Caches npm dependencies based on package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci # Installs project dependencies using package-lock.json for reproducibility
+
+      - name: Lint Check (ESLint)
+        run: npm run lint # Assumes you have a 'lint' script in package.json (e.g., "next lint")
+
+      - name: TypeScript Type Check
+        run: npm run typecheck # Assumes you have a 'typecheck' script (e.g., "tsc --noEmit")
+
+      - name: Build Frontend (Next.js)
+        run: npm run build
+        env:
+          # Required Next.js build-time environment variables
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /
+          CONVEX_DEPLOYMENT_URL: ${{ secrets.CONVEX_PROJECT_URL }}
+          # GEMINI_API_KEY is usually only needed at runtime for the AI action,
+          # not typically for a pure Next.js build. Uncomment if your build process requires it.
+          # GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Convex Lint & Type Check
+        run: npx convex lint --check --typecheck
+        env:
+          # Required for Convex CLI to connect and perform checks
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          CONVEX_PROJECT_URL: ${{ secrets.CONVEX_PROJECT_URL }}
+
+  # --------------------------------------------------------------------------------------
+  # CD Job: Deploy to Production
+  # This job runs ONLY after the 'build-lint-typecheck' job succeeds,
+  # and ONLY when changes are pushed to the 'main' branch.
+  # --------------------------------------------------------------------------------------
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-lint-typecheck # This job depends on the 'build-lint-typecheck' job succeeding
+    environment:
+      name: production # Good practice for tracking deployments in GitHub Environments
+    # This conditional ensures deployment only happens for pushes to the main branch, not PRs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Deploy Convex Backend
+        run: npx convex deploy # Deploys your Convex functions and schema
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          CONVEX_PROJECT_URL: ${{ secrets.CONVEX_PROJECT_URL }}
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest # Installs the Vercel command-line interface
+
+      - name: Pull Vercel Environment Information
+        # Connects to your Vercel project to pull its configuration.
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Project Artifacts (Vercel Build)
+        # Builds the Next.js application using Vercel's build process.
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          # Pass all environment variables needed by your Next.js app at build and runtime.
+          # These should also be configured as secrets in Vercel itself for best practice.
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /
+          CONVEX_DEPLOYMENT_URL: ${{ secrets.CONVEX_PROJECT_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Needed for runtime API calls from Next.js backend
+
+      - name: Deploy to Vercel
+        # Deploys the pre-built artifacts to Vercel's production environment.
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
